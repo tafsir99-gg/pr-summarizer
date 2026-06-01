@@ -36,7 +36,7 @@ The bot is idempotent: it updates its own comment on re-runs instead of spamming
 
 ## Setup
 
-### 1. Add your Anthropic API key as a secret
+### 1. Add your GEMINI API key as a secret
 
 Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
 
