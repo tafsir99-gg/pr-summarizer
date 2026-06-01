@@ -1,6 +1,6 @@
 # 🤖 PR Summarizer
 
-A GitHub Action that automatically generates a structured AI summary for every pull request using **Claude** (`claude-sonnet-4-20250514`). On each `opened` or `synchronize` event the action fetches the PR diff, sends it to the Anthropic API, and posts (or updates) a comment with:
+A GitHub Action that automatically generates a structured AI summary for every pull request using **Gemini** (`gemini-2.5-flash`). On each `opened` or `synchronize` event the action fetches the PR diff, sends it to the Google Gemini API, and posts (or updates) a comment with:
 
 - 📝 **What Changed** — concrete bullet-point list of modifications
 - 💡 **Why It Matters** — purpose and business/technical value
@@ -40,9 +40,9 @@ The bot is idempotent: it updates its own comment on re-runs instead of spamming
 
 Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
 
-| Secret name         | Value                                         |
-|---------------------|-----------------------------------------------|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key (`sk-ant-…`)           |
+| Secret name      | Value                                               |
+|------------------|-----------------------------------------------------|
+| `GEMINI_API_KEY` | Your Google Gemini API key (from Google AI Studio) |
 
 > `GITHUB_TOKEN` is provided automatically by GitHub — no configuration needed.
 
@@ -84,7 +84,7 @@ git push
   uses: ./.github/actions/pr-summarizer
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+    gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
 ```
 
 ### 4. Open a pull request
@@ -100,10 +100,10 @@ Push a branch and open a PR — the **PR Summarizer** workflow will trigger auto
 Edit the `MODEL` constant at the top of [`.github/actions/pr-summarizer/index.js`](.github/actions/pr-summarizer/index.js):
 
 ```js
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "gemini-2.5-flash";
 ```
 
-Any model available via the [Anthropic Messages API](https://docs.anthropic.com/en/docs/about-claude/models) can be used.
+Any model available via the [Google Gemini API](https://ai.google.dev/gemini-api/docs/models) can be used.
 
 ### Adjusting the diff size limit
 
@@ -130,7 +130,7 @@ pull_request (opened / synchronize)
   Build Claude prompt    ← Structured template with metadata + diff
         │
         ▼
-  Call Anthropic API     ← claude-sonnet-4-20250514
+  Call Gemini API        ← gemini-2.5-flash
         │
         ▼
   Upsert PR comment      ← Creates on first run, updates on subsequent pushes
@@ -149,11 +149,11 @@ pull_request (opened / synchronize)
 
 ## Dependencies
 
-| Package              | Purpose                              |
-|----------------------|--------------------------------------|
-| `@actions/core`      | Logging, inputs, failure handling    |
-| `@actions/github`    | Octokit client & GitHub context      |
-| `@anthropic-ai/sdk`  | Anthropic Messages API client        |
+| Package                | Purpose                              |
+|------------------------|--------------------------------------|
+| `@actions/core`        | Logging, inputs, failure handling    |
+| `@actions/github`      | Octokit client & GitHub context      |
+| `@google/generative-ai`| Google Gemini API client             |
 
 ---
 

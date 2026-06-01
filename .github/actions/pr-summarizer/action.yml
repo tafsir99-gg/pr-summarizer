@@ -1,12 +1,12 @@
 name: PR Summarizer
-description: Fetches a PR diff and posts an AI-generated summary as a comment using Claude
+description: Fetches a PR diff and posts an AI-generated summary as a comment using Gemini
 
 inputs:
   github-token:
     description: GitHub token for API access and posting comments
     required: true
-  anthropic-api-key:
-    description: Anthropic API key for Claude access
+  gemini-api-key:
+    description: Google Gemini API key for generative AI access
     required: true
 
 runs:

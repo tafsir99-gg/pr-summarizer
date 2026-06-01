@@ -1,11 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "gemini-2.5-flash";
 const MAX_DIFF_CHARS = 30_000; // truncate very large diffs to stay within context limits
 const COMMENT_MARKER = "<!-- pr-summarizer-bot -->";
 
@@ -66,7 +66,7 @@ async function fetchPrMetadata(octokit, { owner, repo, pull_number }) {
 }
 
 /**
- * Build the Claude prompt from PR metadata and diff.
+ * Build the Gemini prompt from PR metadata and diff.
  */
 function buildPrompt({ title, body, baseBranch, headBranch, additions, deletions, changedFiles, author, diff }) {
   return `You are a senior software engineer performing a thorough pull request review.
@@ -104,23 +104,20 @@ Keep the summary factual, constructive, and under 600 words.`;
 }
 
 /**
- * Call the Claude API and return the summary text.
+ * Call the Gemini API and return the summary text.
  */
-async function generateSummary(anthropicApiKey, prompt) {
-  const client = new Anthropic({ apiKey: anthropicApiKey });
+async function generateSummary(geminiApiKey, prompt) {
+  const genAI = new GoogleGenerativeAI(geminiApiKey);
+  const model = genAI.getGenerativeModel({ model: MODEL });
 
-  const message = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
-  });
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
 
-  const textBlock = message.content.find((block) => block.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("Claude returned no text content.");
+  if (!text) {
+    throw new Error("Gemini returned no text content.");
   }
 
-  return textBlock.text;
+  return text;
 }
 
 /**
@@ -170,7 +167,7 @@ async function run() {
   try {
     // --- Inputs ---
     const githubToken = core.getInput("github-token", { required: true });
-    const anthropicApiKey = core.getInput("anthropic-api-key", { required: true });
+    const geminiApiKey = core.getInput("gemini-api-key", { required: true });
 
     // --- Context ---
     const { context } = github;
@@ -199,9 +196,9 @@ async function run() {
     core.endGroup();
 
     // --- Generate summary ---
-    core.startGroup("Calling Claude API");
+    core.startGroup("Calling Gemini API");
     const prompt = buildPrompt({ ...metadata, diff });
-    const summary = await generateSummary(anthropicApiKey, prompt);
+    const summary = await generateSummary(geminiApiKey, prompt);
     core.info("Summary generated successfully");
     core.endGroup();
 
