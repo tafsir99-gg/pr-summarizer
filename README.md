@@ -160,3 +160,4 @@ pull_request (opened / synchronize)
 ## License
 
 MIT
+
